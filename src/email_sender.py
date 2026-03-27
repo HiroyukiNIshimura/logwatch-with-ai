@@ -139,12 +139,13 @@ class EmailSender:
             return None
 
 
-def format_json_analysis_to_html(analysis: dict) -> str:
+def format_json_analysis_to_html(analysis: dict, raw_logwatch_output: str = "") -> str:
     """
     Convert DeepSeek JSON analysis to HTML email body.
 
     Args:
         analysis: Dictionary with analysis results from DeepSeek
+        raw_logwatch_output: Raw logwatch output to append
 
     Returns:
         HTML formatted email body
@@ -224,6 +225,24 @@ def format_json_analysis_to_html(analysis: dict) -> str:
         html += "</ol>"
     else:
         html += "<p><em>No specific recommendations.</em></p>"
+
+    if raw_logwatch_output:
+        escaped_output = (raw_logwatch_output
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+        )
+        html += f"""
+        <hr>
+        <h3>Raw Logwatch Output</h3>
+        <details>
+          <summary>Click to expand raw output</summary>
+          <pre style="font-family: monospace; font-size: 12px; background-color: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; white-space: pre-wrap;">
+{escaped_output}
+          </pre>
+        </details>
+        """
 
     html += """
     <hr>

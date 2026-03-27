@@ -62,7 +62,7 @@ def main():
             # ✓ Success: Use DeepSeek analysis
             logger.info("DeepSeek analysis successful, using analyzed report")
             email_subject = "[LOGWATCH] System Analysis Report"
-            email_body = format_json_analysis_to_html(deepseek_result)
+            email_body = format_json_analysis_to_html(deepseek_result, logwatch_output)
             analysis_status = "SUCCESS"
         else:
             # ✗ DeepSeek failed: Use raw logwatch output (FALLBACK 1)

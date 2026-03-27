@@ -81,13 +81,15 @@ def test_format_json_analysis_to_html():
         "recommendations": ["Rec 1"]
     }
 
-    html = format_json_analysis_to_html(analysis)
+    html = format_json_analysis_to_html(analysis, "RAW <log> line")
 
     assert "<h2>" in html
     assert "System is healthy" in html
     assert "Issue 1" in html
     assert "Alert 1" in html
     assert "Rec 1" in html
+    assert "Raw Logwatch Output" in html
+    assert "RAW &lt;log&gt; line" in html
 
 
 def test_format_raw_logwatch_to_html():
