@@ -51,6 +51,17 @@ def test_execute_timeout(mock_run):
     assert result is None
 
 
+@patch("src.logwatch_executor.subprocess.run")
+def test_execute_empty_output_returns_none(mock_run):
+    """Test that whitespace-only output is treated as empty."""
+    mock_run.return_value = MagicMock(returncode=0, stdout="   \n\t", stderr="")
+
+    executor = LogwatchExecutor()
+    result = executor.execute()
+
+    assert result is None
+
+
 def test_format_logwatch_output_to_html():
     """Test HTML formatting of logwatch output."""
     input_text = "<script>alert('xss')</script>\n\nLog line 1\nLog line 2"

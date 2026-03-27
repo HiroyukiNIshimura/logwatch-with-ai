@@ -16,4 +16,4 @@ LOG_LEVEL=INFO
 SCRIPT_LOG_FILE=/var/log/logwatch-ai.log
 
 # Execute daily at 2:00 AM
-0 2 * * * root cd /opt/logwatch-with-ai && /usr/bin/python3 src/main.py >> /var/log/logwatch-ai-cron.log 2>&1
+0 2 * * * root cd /opt/logwatch-with-ai && /opt/logwatch-with-ai/.venv/bin/python src/main.py >> /var/log/logwatch-ai-cron.log 2>&1

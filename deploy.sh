@@ -11,6 +11,7 @@ echo "=========================================="
 # Configuration
 PROJECT_DIR="/opt/logwatch-with-ai"
 PYTHON_VERSION=3
+VENV_DIR="$PROJECT_DIR/.venv"
 
 # Check if running as root
 if [[ $EUID -ne 0 ]]; then
@@ -22,11 +23,15 @@ fi
 echo "[1/7] Checking prerequisites..."
 command -v logwatch >/dev/null 2>&1 || { echo "logwatch is not installed. Please run: apt-get install logwatch"; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo "python3 is not installed."; exit 1; }
-command -v pip3 >/dev/null 2>&1 || { echo "pip3 is not installed."; exit 1; }
+python3 -m venv --help >/dev/null 2>&1 || {
+    echo "python3 venv module is not available. Please install python3-venv (Debian/Ubuntu)."
+    exit 1
+}
 
-# Step 2: Install Python dependencies
-echo "[2/7] Installing Python dependencies..."
-pip3 install -r "$PROJECT_DIR/requirements.txt"
+# Step 2: Create virtual environment and install dependencies
+echo "[2/7] Creating virtual environment and installing dependencies..."
+python3 -m venv "$VENV_DIR"
+"$VENV_DIR/bin/pip" install -r "$PROJECT_DIR/requirements.txt"
 
 # Step 3: Create directory structure
 echo "[3/7] Creating directory structure..."
@@ -75,8 +80,7 @@ echo "   nano $PROJECT_DIR/.env"
 echo ""
 echo "2. Test the script manually:"
 echo "   cd $PROJECT_DIR"
-echo "   source .env"
-echo "   python3 src/main.py"
+echo "   $VENV_DIR/bin/python src/main.py"
 echo ""
 echo "3. Verify Cron job:"
 echo "   cat /etc/cron.d/logwatch-ai"

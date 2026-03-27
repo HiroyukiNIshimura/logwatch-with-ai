@@ -5,7 +5,11 @@ Loads and validates environment variables and provides default values.
 import os
 import logging
 from pathlib import Path
-from dotenv import load_dotenv
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
 
 logger = logging.getLogger(__name__)
 
@@ -65,10 +69,32 @@ class Config:
             project_root = Path(__file__).resolve().parent.parent
             dotenv_path = project_root / ".env"
             if dotenv_path.exists():
-                load_dotenv(dotenv_path=dotenv_path, override=False)
-                logger.debug(f"Loaded environment variables from {dotenv_path}")
+                if load_dotenv is not None:
+                    load_dotenv(dotenv_path=dotenv_path, override=False)
+                    logger.debug(f"Loaded environment variables from {dotenv_path} via python-dotenv")
+                else:
+                    # Fallback parser when python-dotenv is not installed
+                    self._load_dotenv_fallback(dotenv_path)
+                    logger.debug(f"Loaded environment variables from {dotenv_path} via fallback parser")
         except Exception as e:
             logger.warning(f"Could not load .env file: {e}")
+
+    def _load_dotenv_fallback(self, dotenv_path: Path) -> None:
+        """Minimal .env loader without external dependency."""
+        with dotenv_path.open("r", encoding="utf-8") as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" not in line:
+                    continue
+
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+
+                # Do not overwrite already-exported environment variables
+                os.environ.setdefault(key, value)
 
     def to_dict(self) -> dict:
         """Return configuration as dictionary (safe for logging, excludes secrets)."""

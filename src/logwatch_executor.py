@@ -52,12 +52,17 @@ class LogwatchExecutor:
                 logger.warning(f"logwatch exited with code {result.returncode}")
                 if result.stderr:
                     logger.error(f"logwatch stderr: {result.stderr}")
+            elif result.stderr:
+                logger.warning(f"logwatch stderr (code=0): {result.stderr}")
 
-            if result.stdout:
+            if result.stdout and result.stdout.strip():
                 logger.info(f"logwatch output length: {len(result.stdout)} characters")
                 return result.stdout
             else:
-                logger.warning("logwatch returned empty output")
+                logger.warning(
+                    "logwatch returned empty output. "
+                    "Check logwatch configuration (Output = stdout), service filters, and log permissions."
+                )
                 return None
 
         except subprocess.TimeoutExpired:

@@ -25,10 +25,10 @@
 
 ```bash
 # RHEL/CentOS
-sudo yum install -y logwatch postfix python3 python3-pip
+sudo yum install -y logwatch postfix python3
 
 # Debian/Ubuntu
-sudo apt-get install -y logwatch postfix python3 python3-pip
+sudo apt-get install -y logwatch postfix python3 python3-venv
 ```
 
 ### 2. プロジェクトをクローン
@@ -39,10 +39,11 @@ sudo git clone https://github.com/your-org/logwatch-with-ai.git
 cd logwatch-with-ai
 ```
 
-### 3. Python 依存パッケージをインストール
+### 3. Python 仮想環境を作成して依存パッケージをインストール
 
 ```bash
-sudo pip3 install -r requirements.txt
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
 ```
 
 ### 4. 環境変数を設定
@@ -74,10 +75,9 @@ sudo chmod 755 /opt/logwatch-with-ai/src/*.py
 ### 手動実行（テスト）
 
 ```bash
-# 環境変数を読み込んで実行
+# 実行（.env は自動読み込み）
 cd /opt/logwatch-with-ai
-source .env
-python3 src/main.py
+.venv/bin/python src/main.py
 ```
 
 **ログ出力:**
@@ -192,7 +192,7 @@ sudo ls /etc/logwatch/conf/services/
 `/etc/cron.d/logwatch-ai` を編集:
 ```bash
 # 毎日午前8時に実行
-0 8 * * * root cd /opt/logwatch-with-ai && /usr/bin/python3 src/main.py >> /var/log/logwatch-ai-cron.log 2>&1
+0 8 * * * root cd /opt/logwatch-with-ai && /opt/logwatch-with-ai/.venv/bin/python src/main.py >> /var/log/logwatch-ai-cron.log 2>&1
 ```
 
 ## メール送信設定
@@ -267,8 +267,7 @@ logwatch-with-ai/
 ### ログレベルを上げる
 
 ```bash
-. .env
-LOG_LEVEL=DEBUG python3 src/main.py
+LOG_LEVEL=DEBUG .venv/bin/python src/main.py
 ```
 
 ### 個別モジュールをテスト
