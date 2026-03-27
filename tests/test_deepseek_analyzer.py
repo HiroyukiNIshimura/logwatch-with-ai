@@ -24,6 +24,7 @@ def test_build_analysis_prompt():
     assert "Test log output" in prompt
     assert "critical_issues" in prompt
     assert "security_alerts" in prompt
+    assert "日本語" in prompt
 
 
 @patch("src.deepseek_analyzer.requests.post")

@@ -109,7 +109,7 @@ class DeepSeekAnalyzer:
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are a system log analyzer. Analyze the provided logwatch output and respond with valid JSON only."
+                    "content": "あなたはシステムログ分析の専門家です。提供された logwatch 出力を分析し、必ず有効なJSONのみで回答してください。解説文は日本語で出力してください。"
                 },
                 {
                     "role": "user",
@@ -198,21 +198,22 @@ class DeepSeekAnalyzer:
         Returns:
             Formatted prompt
         """
-        prompt = f"""Analyze the following system log summary and provide structured insights:
+        prompt = f"""以下のシステムログ要約を分析し、構造化された洞察を返してください。
 
 {logwatch_output}
 
-Please analyze and respond with ONLY valid JSON (no additional text) in this format:
+必ず「有効なJSONのみ」を返してください（前置き・後置きのテキストは禁止）。
+JSONのキー名は以下の形式を厳守し、値（配列の各要素とsummary）は日本語で記述してください。
 {{
-  "critical_issues": ["List of critical errors or failures"],
-  "security_alerts": ["List of security-related events (failed logins, unauthorized access, etc.)"],
-  "performance_issues": ["List of performance problems or resource warnings"],
-  "important_warnings": ["List of important warnings"],
-  "recommendations": ["List of recommended actions"],
-  "summary": "One-sentence summary of the overall system health"
+    "critical_issues": ["重大なエラーや障害の要点"],
+    "security_alerts": ["セキュリティ関連イベント（不正ログイン試行、遮断、攻撃兆候など）"],
+    "performance_issues": ["性能問題やリソース警告"],
+    "important_warnings": ["重要な警告"],
+    "recommendations": ["推奨アクション"],
+    "summary": "システム全体の状況を1文で要約"
 }}
 
-Return empty arrays if no items in that category."""
+該当項目がない場合は空配列を返してください。"""
 
         return prompt
 
