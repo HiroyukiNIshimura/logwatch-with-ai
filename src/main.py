@@ -11,7 +11,7 @@ from pathlib import Path
 # Import modules
 from config import Config, setup_logging
 from logwatch_executor import LogwatchExecutor, format_logwatch_output_to_html
-from deepseek_analyzer import DeepSeekAnalyzer
+from deepseek_analyzer import AIAnalyzer
 from email_sender import (
     EmailSender,
     format_json_analysis_to_html,
@@ -47,15 +47,17 @@ def main():
 
         # ========== Step 3: DeepSeek Analysis (with fallback) ==========
         logger.info("Attempting DeepSeek analysis...")
-        deepseek_analyzer = DeepSeekAnalyzer(
-            api_key=config.deepseek_api_key,
+        ai_analyzer = AIAnalyzer(
+            api_key=config.ai_api_key,
+            provider=config.ai_provider,
+            model=config.ai_model,
             max_retries=config.deepseek_max_retries,
             timeout=config.deepseek_timeout,
             retry_backoff=config.deepseek_retry_backoff,
             max_input_chars=config.deepseek_max_input_chars
         )
 
-        deepseek_result = deepseek_analyzer.analyze(logwatch_output)
+        deepseek_result = ai_analyzer.analyze(logwatch_output)
 
         # ========== Step 4: Prepare Email Body ==========
         if deepseek_result is not None:

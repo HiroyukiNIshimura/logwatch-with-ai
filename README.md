@@ -75,15 +75,29 @@ sudo nano .env
 
 **必須項目:**
 ```bash
+AI_PROVIDER=deepseek  # deepseek / openai / gemini
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxx  # DeepSeek API キーを記入
 ADMIN_EMAIL=nishimura@69.nyanta.jp
 MAIL_FROM=logwatch-ai@your-domain.com
 ```
 
+**プロバイダー切り替え例:**
+```bash
+# OpenAI に切り替える場合
+AI_PROVIDER=openai
+OPENAI_API_KEY=sk-xxxxxxxxxxxx
+OPENAI_MODEL=gpt-4o-mini
+
+# Gemini に切り替える場合
+AI_PROVIDER=gemini
+GEMINI_API_KEY=xxxxxxxxxxxx
+GEMINI_MODEL=gemini-2.0-flash
+```
+
 **推奨（大きなログ対策）:**
 ```bash
 # DeepSeek に送るログ文字数上限（コンテキスト超過回避）
-DEEPSEEK_MAX_INPUT_CHARS=50000
+DEEPSEEK_MAX_INPUT_CHARS=30000
 ```
 
 ### 5. スクリプトの権限を設定
@@ -118,6 +132,8 @@ sudo cat config/logwatch-ai.cron
 
 # /etc/cron.d/ にコピー
 sudo cp config/logwatch-ai.cron /etc/cron.d/logwatch-ai
+
+> 既存のlogwatchと置き換える場合は、/etc/cron.daily/00logwatchを削除または無効化してください。
 
 # Cron サービスを再起動
 sudo systemctl restart cron

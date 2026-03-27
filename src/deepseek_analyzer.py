@@ -12,16 +12,25 @@ from typing import Optional, Dict, Any
 logger = logging.getLogger(__name__)
 
 
-class DeepSeekAnalyzer:
-    """Analyzes logwatch output using DeepSeek API."""
+class AIAnalyzer:
+    """Analyzes logwatch output using selected AI provider API."""
 
-    # DeepSeek API endpoint
-    API_ENDPOINT = "https://api.deepseek.com/v1/chat/completions"
-    MODEL = "deepseek-chat"
+    PROVIDER_ENDPOINTS = {
+        "deepseek": "https://api.deepseek.com/v1/chat/completions",
+        "openai": "https://api.openai.com/v1/chat/completions",
+        "gemini": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+    }
+    PROVIDER_DEFAULT_MODELS = {
+        "deepseek": "deepseek-chat",
+        "openai": "gpt-4o-mini",
+        "gemini": "gemini-2.0-flash",
+    }
 
     def __init__(
         self,
         api_key: str,
+        provider: str = "deepseek",
+        model: str = None,
         max_retries: int = 3,
         timeout: int = 30,
         retry_backoff: float = 2.0,
@@ -32,12 +41,17 @@ class DeepSeekAnalyzer:
 
         Args:
             api_key: DeepSeek API key
+            provider: AI provider (deepseek/openai/gemini)
+            model: Model name for selected provider
             max_retries: Maximum number of retries on failure
             timeout: Request timeout in seconds
             retry_backoff: Backoff multiplier for retries (exponential)
             max_input_chars: Maximum log input size before compaction
         """
         self.api_key = api_key
+        self.provider = (provider or "deepseek").lower()
+        self.api_endpoint = self.PROVIDER_ENDPOINTS.get(self.provider, self.PROVIDER_ENDPOINTS["deepseek"])
+        self.model = model or self.PROVIDER_DEFAULT_MODELS.get(self.provider, self.PROVIDER_DEFAULT_MODELS["deepseek"])
         self.max_retries = max_retries
         self.timeout = timeout
         self.retry_backoff = retry_backoff
@@ -63,7 +77,9 @@ class DeepSeekAnalyzer:
 
         for attempt in range(self.max_retries):
             try:
-                logger.info(f"Calling DeepSeek API (attempt {attempt + 1}/{self.max_retries})")
+                logger.info(
+                    f"Calling {self.provider} API (attempt {attempt + 1}/{self.max_retries}, model={self.model})"
+                )
 
                 response = self._call_api(prompt)
 
@@ -86,7 +102,7 @@ class DeepSeekAnalyzer:
                     wait_time = self._calculate_backoff(attempt)
                     time.sleep(wait_time)
 
-        logger.error(f"DeepSeek API failed after {self.max_retries} attempts")
+        logger.error(f"{self.provider} API failed after {self.max_retries} attempts")
         return None  # Trigger fallback in main.py
 
     def _call_api(self, prompt: str) -> Optional[str]:
@@ -105,7 +121,7 @@ class DeepSeekAnalyzer:
         }
 
         payload = {
-            "model": self.MODEL,
+            "model": self.model,
             "messages": [
                 {
                     "role": "system",
@@ -122,7 +138,7 @@ class DeepSeekAnalyzer:
 
         try:
             response = requests.post(
-                self.API_ENDPOINT,
+                self.api_endpoint,
                 headers=headers,
                 json=payload,
                 timeout=self.timeout
@@ -131,20 +147,20 @@ class DeepSeekAnalyzer:
             if response.status_code == 200:
                 return response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
             elif response.status_code == 429:
-                logger.warning("DeepSeek API rate limit exceeded")
+                logger.warning(f"{self.provider} API rate limit exceeded")
                 return None
             elif response.status_code == 401:
-                logger.error("DeepSeek API authentication failed (check API key)")
+                logger.error(f"{self.provider} API authentication failed (check API key)")
                 return None
             else:
-                logger.error(f"DeepSeek API error {response.status_code}: {response.text}")
+                logger.error(f"{self.provider} API error {response.status_code}: {response.text}")
                 return None
 
         except requests.Timeout:
-            logger.error(f"DeepSeek API timeout after {self.timeout}s")
+            logger.error(f"{self.provider} API timeout after {self.timeout}s")
             return None
         except requests.RequestException as e:
-            logger.error(f"DeepSeek API request failed: {e}")
+            logger.error(f"{self.provider} API request failed: {e}")
             return None
 
     def _parse_response(self, response_text: str) -> Optional[Dict[str, Any]]:
@@ -284,3 +300,7 @@ JSONのキー名は以下の形式を厳守し、値（配列の各要素とsumm
             Wait time in seconds
         """
         return (self.retry_backoff ** attempt)
+
+
+# Backward compatibility alias
+DeepSeekAnalyzer = AIAnalyzer
