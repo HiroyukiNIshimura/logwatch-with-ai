@@ -13,6 +13,7 @@ def test_analyzer_initialization():
     assert analyzer.api_key == "test-key"
     assert analyzer.max_retries == 3
     assert analyzer.timeout == 30
+    assert analyzer.max_input_chars == 50000
 
 
 def test_build_analysis_prompt():
@@ -83,3 +84,24 @@ def test_calculate_backoff():
     assert analyzer._calculate_backoff(0) == 1.0
     assert analyzer._calculate_backoff(1) == 2.0
     assert analyzer._calculate_backoff(2) == 4.0
+
+
+def test_compact_logwatch_output_truncates_large_input():
+    """Test compaction for oversized log input."""
+    analyzer = DeepSeekAnalyzer(api_key="test-key", max_input_chars=1000)
+    large_log = ("INFO normal line\n" * 200) + ("ERROR failed login\n" * 200)
+
+    compacted = analyzer._compact_logwatch_output(large_log)
+
+    assert len(compacted) <= 1000
+    assert "TRUNCATED LOGWATCH OUTPUT" in compacted
+
+
+def test_compact_logwatch_output_keeps_small_input():
+    """Test small input remains unchanged."""
+    analyzer = DeepSeekAnalyzer(api_key="test-key", max_input_chars=1000)
+    small_log = "INFO hello\nWARN test"
+
+    compacted = analyzer._compact_logwatch_output(small_log)
+
+    assert compacted == small_log

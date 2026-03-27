@@ -63,6 +63,12 @@ ADMIN_EMAIL=nishimura@69.nyanta.jp
 MAIL_FROM=logwatch-ai@your-domain.com
 ```
 
+**推奨（大きなログ対策）:**
+```bash
+# DeepSeek に送るログ文字数上限（コンテキスト超過回避）
+DEEPSEEK_MAX_INPUT_CHARS=50000
+```
+
 ### 5. スクリプトの権限を設定
 
 ```bash

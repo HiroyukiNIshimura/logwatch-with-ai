@@ -26,6 +26,7 @@ class Config:
         self.deepseek_max_retries = int(os.getenv("DEEPSEEK_MAX_RETRIES", "3"))
         self.deepseek_timeout = int(os.getenv("DEEPSEEK_TIMEOUT", "30"))
         self.deepseek_retry_backoff = float(os.getenv("DEEPSEEK_RETRY_BACKOFF_FACTOR", "2"))
+        self.deepseek_max_input_chars = int(os.getenv("DEEPSEEK_MAX_INPUT_CHARS", "50000"))
 
         # Email (SMTP)
         self.smtp_host = os.getenv("SMTP_HOST", "localhost")
@@ -105,6 +106,7 @@ class Config:
             "admin_email": self.admin_email,
             "report_output_dir": self.report_output_dir,
             "log_level": self.log_level,
+            "deepseek_max_input_chars": self.deepseek_max_input_chars,
         }
 
 

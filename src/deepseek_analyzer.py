@@ -6,6 +6,7 @@ import requests
 import json
 import logging
 import time
+import re
 from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,8 @@ class DeepSeekAnalyzer:
         api_key: str,
         max_retries: int = 3,
         timeout: int = 30,
-        retry_backoff: float = 2.0
+        retry_backoff: float = 2.0,
+        max_input_chars: int = 50000,
     ):
         """
         Initialize DeepSeek analyzer.
@@ -33,11 +35,13 @@ class DeepSeekAnalyzer:
             max_retries: Maximum number of retries on failure
             timeout: Request timeout in seconds
             retry_backoff: Backoff multiplier for retries (exponential)
+            max_input_chars: Maximum log input size before compaction
         """
         self.api_key = api_key
         self.max_retries = max_retries
         self.timeout = timeout
         self.retry_backoff = retry_backoff
+        self.max_input_chars = max_input_chars
 
     def analyze(self, logwatch_output: str) -> Optional[Dict[str, Any]]:
         """
@@ -54,7 +58,8 @@ class DeepSeekAnalyzer:
             logger.warning("Empty logwatch output provided for analysis")
             return None
 
-        prompt = self._build_analysis_prompt(logwatch_output)
+        compacted_output = self._compact_logwatch_output(logwatch_output)
+        prompt = self._build_analysis_prompt(compacted_output)
 
         for attempt in range(self.max_retries):
             try:
@@ -210,6 +215,62 @@ Please analyze and respond with ONLY valid JSON (no additional text) in this for
 Return empty arrays if no items in that category."""
 
         return prompt
+
+    def _compact_logwatch_output(self, logwatch_output: str) -> str:
+        """
+        Compact large logwatch output to avoid model context overflow.
+
+        Strategy:
+        1) Keep lines that look important (errors/security/perf signals)
+        2) Include small head/tail slices for context
+        3) Enforce hard character cap
+        """
+        if len(logwatch_output) <= self.max_input_chars:
+            return logwatch_output
+
+        original_len = len(logwatch_output)
+        lines = logwatch_output.splitlines()
+
+        important_pattern = re.compile(
+            r"error|warn|fail|denied|timeout|critical|panic|segfault|"
+            r"unauthor|invalid|refused|oom|killed process|attack|sudo|sshd|ufw",
+            re.IGNORECASE,
+        )
+
+        important_lines = [line for line in lines if important_pattern.search(line)]
+
+        # Budgets for each section
+        hard_cap = max(self.max_input_chars, 1000)
+        important_budget = int(hard_cap * 0.7)
+        edge_budget_each = int(hard_cap * 0.15)
+
+        important_text = "\n".join(important_lines)
+        if len(important_text) > important_budget:
+            important_text = important_text[:important_budget]
+
+        head = logwatch_output[:edge_budget_each]
+        tail = logwatch_output[-edge_budget_each:] if len(logwatch_output) > edge_budget_each else ""
+
+        compacted = (
+            "[TRUNCATED LOGWATCH OUTPUT]\n"
+            f"Original size: {original_len} chars\n"
+            f"Compacted size target: <= {hard_cap} chars\n\n"
+            "=== IMPORTANT LINES (error/security/perf related) ===\n"
+            f"{important_text}\n\n"
+            "=== BEGINNING SAMPLE ===\n"
+            f"{head}\n\n"
+            "=== ENDING SAMPLE ===\n"
+            f"{tail}\n"
+        )
+
+        if len(compacted) > hard_cap:
+            compacted = compacted[:hard_cap]
+
+        logger.warning(
+            "Compacted logwatch output for DeepSeek context limit: "
+            f"{original_len} -> {len(compacted)} chars"
+        )
+        return compacted
 
     def _calculate_backoff(self, attempt: int) -> float:
         """

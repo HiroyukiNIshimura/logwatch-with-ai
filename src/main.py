@@ -51,7 +51,8 @@ def main():
             api_key=config.deepseek_api_key,
             max_retries=config.deepseek_max_retries,
             timeout=config.deepseek_timeout,
-            retry_backoff=config.deepseek_retry_backoff
+            retry_backoff=config.deepseek_retry_backoff,
+            max_input_chars=config.deepseek_max_input_chars
         )
 
         deepseek_result = deepseek_analyzer.analyze(logwatch_output)
