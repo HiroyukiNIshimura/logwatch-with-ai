@@ -165,21 +165,26 @@ telnet localhost 25
 ### ログファイルが見つからない
 
 ```bash
-# logwatch が監視対象ログを見つからない場合
-logwatch --logfile messages --detail high
+# logwatch の実行確認（本スクリプトと同じ実行オプション）
+logwatch --format text
 
 # logwatch 設定を確認
 cat /etc/logwatch/default.conf
 ls /etc/logwatch/conf/logfiles/
 ```
 
+**補足**: journald 対応・監視対象サービスは logwatch 側設定で管理します。
+
 ## 設定のカスタマイズ
 
 ### 監視対象サービスを変更
 
-`.env` ファイルを編集:
+`logwatch` 側設定を編集します（例: `/etc/logwatch/conf/logfiles/`, `/etc/logwatch/conf/services/`）。
+
+例:
 ```bash
-LOGWATCH_SERVICES=messages,apache-access,nginx,sshd,ufw,fail2ban
+sudo ls /etc/logwatch/conf/logfiles/
+sudo ls /etc/logwatch/conf/services/
 ```
 
 ### 実行スケジュールを変更
@@ -187,15 +192,7 @@ LOGWATCH_SERVICES=messages,apache-access,nginx,sshd,ufw,fail2ban
 `/etc/cron.d/logwatch-ai` を編集:
 ```bash
 # 毎日午前8時に実行
-0 8 * * * root cd /opt/logwatch-with-ai && source .env && /usr/bin/python3 src/main.py
-```
-
-### 詳細度を変更
-
-`.env` ファイルを編集:
-```bash
-# 詳細度: low, medium, high
-LOGWATCH_DETAIL=high
+0 8 * * * root cd /opt/logwatch-with-ai && /usr/bin/python3 src/main.py >> /var/log/logwatch-ai-cron.log 2>&1
 ```
 
 ## メール送信設定
