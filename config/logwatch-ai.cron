@@ -1,0 +1,21 @@
+#!/bin/bash
+# Cron job configuration for logwatch-ai
+# Place this file at: /etc/cron.d/logwatch-ai
+# Then run: sudo systemctl restart cron
+
+# Environment variables
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+DEEPSEEK_API_KEY=sk-your-api-key-here
+LOGWATCH_DETAIL=medium
+LOGWATCH_SERVICES=messages,apache-access,nginx,sshd,ufw
+SMTP_HOST=localhost
+SMTP_PORT=25
+MAIL_FROM=logwatch-ai@localhost
+ADMIN_EMAIL=nishimura@69.nyanta.jp
+ANALYZED_REPORT_OUTPUT=/var/tmp
+LOG_LEVEL=INFO
+SCRIPT_LOG_FILE=/var/log/logwatch-ai.log
+
+# Execute daily at 2:00 AM
+0 2 * * * root cd /opt/logwatch-ai && /usr/bin/python3 src/main.py >> /var/log/logwatch-ai-cron.log 2>&1
