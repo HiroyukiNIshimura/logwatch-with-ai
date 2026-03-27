@@ -39,6 +39,23 @@ sudo git clone https://github.com/your-org/logwatch-with-ai.git
 cd logwatch-with-ai
 ```
 
+### 2.5 自動セットアップ（`deploy.sh` を使う）
+
+手動セットアップの代わりに、同梱のデプロイスクリプトを利用できます。
+
+```bash
+cd /opt/logwatch-with-ai
+sudo bash deploy.sh
+```
+
+このスクリプトは以下を自動実施します。
+- `.venv` 作成と依存パッケージインストール
+- `config/logwatch-ai.cron` の配置
+- `config/logwatch-ai.logrotate` の配置
+- 実行権限とログファイルの初期設定
+
+> すでに `deploy.sh` を使った場合は、以降の「3〜5」は確認だけでOKです。
+
 ### 3. Python 仮想環境を作成して依存パッケージをインストール
 
 ```bash
@@ -246,6 +263,7 @@ logwatch-with-ai/
 ├── .env.example                 # 環境変数テンプレート
 ├── .gitignore                   # Git 除外設定
 ├── requirements.txt             # Python 依存
+├── deploy.sh                    # 自動デプロイスクリプト
 └── README.md                    # このファイル
 ```
 
