@@ -3,8 +3,6 @@ Unit tests for config module.
 """
 import pytest
 import os
-import tempfile
-from pathlib import Path
 from unittest.mock import patch
 
 
@@ -40,16 +38,14 @@ def test_config_validation_missing_email():
             config = Config()
 
 
-def test_config_get_services_list():
-    """Test that services list is properly parsed."""
+def test_config_to_dict_masks_secrets():
+    """Test that to_dict masks API key and exposes safe fields."""
     with patch.dict(os.environ, {
         "DEEPSEEK_API_KEY": "test-key",
-        "ADMIN_EMAIL": "admin@example.com",
-        "LOGWATCH_SERVICES": "messages, sshd, apache-access"
+        "ADMIN_EMAIL": "admin@example.com"
     }):
         from src.config import Config
         config = Config()
-        services = config.get_logwatch_services_list()
-        assert len(services) == 3
-        assert services[0] == "messages"
-        assert services[2] == "apache-access"
+        data = config.to_dict()
+        assert data["deepseek_api_key"] == "***"
+        assert data["admin_email"] == "admin@example.com"

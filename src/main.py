@@ -36,13 +36,8 @@ def main():
 
         # ========== Step 2: Execute logwatch ==========
         logger.info("Executing logwatch...")
-        logwatch_executor = LogwatchExecutor(
-            logwatch_detail=config.logwatch_detail,
-            timeout=60
-        )
-
-        services = config.get_logwatch_services_list()
-        logwatch_output = logwatch_executor.execute(services=services)
+        logwatch_executor = LogwatchExecutor(timeout=60)
+        logwatch_output = logwatch_executor.execute()
 
         if not logwatch_output:
             logger.error("logwatch produced no output. Aborting.")

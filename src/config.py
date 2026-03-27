@@ -5,7 +5,6 @@ Loads and validates environment variables and provides default values.
 import os
 import logging
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +19,6 @@ class Config:
         self.deepseek_max_retries = int(os.getenv("DEEPSEEK_MAX_RETRIES", "3"))
         self.deepseek_timeout = int(os.getenv("DEEPSEEK_TIMEOUT", "30"))
         self.deepseek_retry_backoff = float(os.getenv("DEEPSEEK_RETRY_BACKOFF_FACTOR", "2"))
-
-        # Logwatch
-        self.logwatch_detail = os.getenv("LOGWATCH_DETAIL", "medium")
-        self.logwatch_services = os.getenv("LOGWATCH_SERVICES", "messages,apache-access,nginx,sshd,ufw").split(",")
-        self.logwatch_log_dir = os.getenv("LOGWATCH_LOG_DIR", "/var/log")
 
         # Email (SMTP)
         self.smtp_host = os.getenv("SMTP_HOST", "localhost")
@@ -50,10 +44,6 @@ class Config:
         if not self.admin_email:
             raise ValueError("ADMIN_EMAIL environment variable is required")
 
-        if self.logwatch_detail not in ["low", "medium", "high"]:
-            logger.warning(f"Invalid logwatch detail level: {self.logwatch_detail}, using 'medium'")
-            self.logwatch_detail = "medium"
-
         # Check if output directory exists and is writable
         report_path = Path(self.report_output_dir)
         if not report_path.exists():
@@ -66,16 +56,10 @@ class Config:
             if not os.access(self.report_output_dir, os.W_OK):
                 logger.warning(f"Report output directory not writable: {self.report_output_dir}")
 
-    def get_logwatch_services_list(self) -> list:
-        """Get list of logwatch services to monitor."""
-        return [s.strip() for s in self.logwatch_services if s.strip()]
-
     def to_dict(self) -> dict:
         """Return configuration as dictionary (safe for logging, excludes secrets)."""
         return {
             "deepseek_api_key": "***" if self.deepseek_api_key else None,
-            "logwatch_detail": self.logwatch_detail,
-            "logwatch_services": self.get_logwatch_services_list(),
             "smtp_host": self.smtp_host,
             "smtp_port": self.smtp_port,
             "admin_email": self.admin_email,
