@@ -123,6 +123,8 @@ sudo cp config/logwatch-ai.cron /etc/cron.d/logwatch-ai
 sudo systemctl restart cron
 ```
 
+> `config/logwatch-ai.cron` には機密情報（APIキー等）を記載しません。実行時の設定値は `/opt/logwatch-with-ai/.env` から自動読み込みされます。
+
 #### 7. ログローテーションを設定
 
 ```bash
