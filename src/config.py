@@ -5,6 +5,7 @@ Loads and validates environment variables and provides default values.
 import os
 import logging
 from pathlib import Path
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,8 @@ class Config:
 
     def __init__(self):
         """Initialize configuration from environment variables."""
+        self._load_dotenv_if_present()
+
         # DeepSeek API
         self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
         self.deepseek_max_retries = int(os.getenv("DEEPSEEK_MAX_RETRIES", "3"))
@@ -55,6 +58,17 @@ class Config:
         else:
             if not os.access(self.report_output_dir, os.W_OK):
                 logger.warning(f"Report output directory not writable: {self.report_output_dir}")
+
+    def _load_dotenv_if_present(self) -> None:
+        """Load .env from project root if available."""
+        try:
+            project_root = Path(__file__).resolve().parent.parent
+            dotenv_path = project_root / ".env"
+            if dotenv_path.exists():
+                load_dotenv(dotenv_path=dotenv_path, override=False)
+                logger.debug(f"Loaded environment variables from {dotenv_path}")
+        except Exception as e:
+            logger.warning(f"Could not load .env file: {e}")
 
     def to_dict(self) -> dict:
         """Return configuration as dictionary (safe for logging, excludes secrets)."""
