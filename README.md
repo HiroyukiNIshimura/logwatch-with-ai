@@ -126,6 +126,10 @@ cd /opt/logwatch-with-ai
 
 #### 6. Cron ジョブを登録
 
+2 つの方法から選択できます。
+
+##### 方法 A: `/etc/cron.d/` に配置（実行時刻を指定したい場合）
+
 ```bash
 # Cron ファイルを確認
 sudo cat config/logwatch-ai.cron
@@ -133,13 +137,31 @@ sudo cat config/logwatch-ai.cron
 # /etc/cron.d/ にコピー
 sudo cp config/logwatch-ai.cron /etc/cron.d/logwatch-ai
 
-> 既存のlogwatchと置き換える場合は、/etc/cron.daily/00logwatchを削除または無効化してください。
+# 既存の logwatch と置き換える場合は無効化
+# sudo rm /etc/cron.daily/00logwatch
 
 # Cron サービスを再起動
 sudo systemctl restart cron
 ```
 
-> `config/logwatch-ai.cron` には機密情報（APIキー等）を記載しません。実行時の設定値は `/opt/logwatch-with-ai/.env` から自動読み込みされます。
+##### 方法 B: `/etc/cron.daily/` に配置（テストが簡単・推奨）
+
+`run-parts` で手動実行できるため、デプロイ直後の動作確認が容易です。
+
+```bash
+# スクリプトをコピーして実行権限を付与
+sudo cp config/logwatch-ai.cron.daily /etc/cron.daily/logwatch-ai
+sudo chmod +x /etc/cron.daily/logwatch-ai
+
+# 既存の logwatch と置き換える場合は無効化
+# sudo rm /etc/cron.daily/00logwatch
+
+# 手動でテスト実行
+sudo run-parts --test /etc/cron.daily   # ドライラン（実行ファイル一覧を確認）
+sudo run-parts /etc/cron.daily          # 実際に実行
+```
+
+> どちらの方法でも、`config/logwatch-ai.cron*` には機密情報（APIキー等）を記載しません。実行時の設定値は `/opt/logwatch-with-ai/.env` から自動読み込みされます。
 
 #### 7. ログローテーションを設定
 
@@ -230,11 +252,13 @@ sudo ls /etc/logwatch/conf/services/
 
 ### 実行スケジュールを変更
 
-`/etc/cron.d/logwatch-ai` を編集:
+`/etc/cron.d/logwatch-ai` を編集（`cron.d` 版のみ）:
 ```bash
 # 毎日午前8時に実行
 0 8 * * * root cd /opt/logwatch-with-ai && /opt/logwatch-with-ai/.venv/bin/python src/main.py >> /var/log/logwatch-ai-cron.log 2>&1
 ```
+
+> `cron.daily` 版は OS の `anacron` 設定（通常は午前6時前後）に従って実行されます。時刻を厳密に指定したい場合は `cron.d` 版を使用してください。
 
 ## メール送信設定
 
@@ -271,7 +295,8 @@ logwatch-with-ai/
 │   └── email_sender.py          # メール送信
 ├── config/
 │   ├── logwatch.conf            # logwatch 設定
-│   ├── logwatch-ai.cron         # Cron ジョブ定義
+│   ├── logwatch-ai.cron         # Cron ジョブ定義 (/etc/cron.d/ 用)
+│   ├── logwatch-ai.cron.daily   # Cron ジョブ定義 (/etc/cron.daily/ 用、テスト容易)
 │   └── logwatch-ai.logrotate    # ログローテーション
 ├── tests/
 │   ├── test_config.py

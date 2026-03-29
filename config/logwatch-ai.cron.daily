@@ -1,0 +1,9 @@
+#!/bin/bash
+# Cron job configuration for logwatch-ai (cron.daily version)
+# Place this file at: /etc/cron.daily/logwatch-ai
+# Then run: sudo chmod +x /etc/cron.daily/logwatch-ai
+
+# EDIT Logwatch-AI execution directory
+EXEDIR=/opt/logwatch-with-ai
+
+cd "$EXEDIR" && "$EXEDIR"/.venv/bin/python src/main.py >> /var/log/logwatch-ai-cron.log 2>&1
