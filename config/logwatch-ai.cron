@@ -1,4 +1,4 @@
-#!/bin/bash
+# shellcheck disable=SC2148
 # Cron job configuration for logwatch-ai
 # Place this file at: /etc/cron.d/logwatch-ai
 # Then run: sudo systemctl restart cron
