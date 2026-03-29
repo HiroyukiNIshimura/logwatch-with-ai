@@ -1,6 +1,26 @@
 # logwatch-with-ai
 
-システムログを自動監視し、**DeepSeek AI** で解析して、毎日メールで管理者に通知するスクリプト。DeepSeek API 障害時は生ログを直接送信、メール送信失敗時はファイルに保存するフォールバック機構付き。
+**logwatch-with-ai** は、Linux サーバーのログ監視・通知を自動化する Python スクリプトです。
+
+### 処理フロー
+1. **logwatch** でシステムログを収集
+2. **DeepSeek / OpenAI / Gemini** のいずれかの AI API でログを解析・要約
+3. 結果を **HTML メール** で管理者に送信
+
+### フォールバック機構
+- AI API が失敗 → 生ログをそのままメール送信
+- メール送信失敗 → `/var/tmp` に HTML ファイルとして保存
+
+### 主な構成
+| ディレクトリ | 内容 |
+|---|---|
+| `src/` | メイン処理（設定・logwatch 実行・AI 解析・メール送信） |
+| `config/` | cron・logrotate・logwatch 設定ファイル |
+| `tests/` | 各モジュールのユニットテスト |
+
+### Cron 実行方式
+- `/etc/cron.d/` — 実行時刻を明示指定（デフォルト午前2時）
+- `/etc/cron.daily/` — `run-parts` で手動テスト可能な簡易版
 
 ## Features
 
@@ -16,8 +36,8 @@
 - **OS**: Linux (RHEL/CentOS, Debian/Ubuntu)
 - **Python**: 3.7 以上
 - **Tools**: `logwatch`, `postfix` (メール送信)
-- **API**: DeepSeek API キー
-- **Network**: インターネット接続 (DeepSeek API 呼び出し用)
+- **API**: DeepSeek / OpenAI / Gemini の API キー
+- **Network**: インターネット接続 (DeepSeek / OpenAI / Gemini の API 呼び出し用)
 
 ## インストール
 
