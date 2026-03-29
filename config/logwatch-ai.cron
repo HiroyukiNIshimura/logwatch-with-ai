@@ -6,6 +6,8 @@
 # Minimal environment for cron execution
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# EDIT Logwatch-AI execution directory
+EXEDIR=/opt/logwatch-with-ai
 
 # Execute daily at 2:00 AM
-0 2 * * * root cd /opt/logwatch-with-ai && /opt/logwatch-with-ai/.venv/bin/python src/main.py >> /var/log/logwatch-ai-cron.log 2>&1
+0 2 * * * root cd "$EXEDIR" && "$EXEDIR"/.venv/bin/python src/main.py >> /var/log/logwatch-ai-cron.log 2>&1
