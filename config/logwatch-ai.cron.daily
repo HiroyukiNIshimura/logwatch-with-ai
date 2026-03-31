@@ -6,4 +6,4 @@
 # EDIT Logwatch-AI execution directory
 EXEDIR=/opt/logwatch-with-ai
 
-cd "$EXEDIR" && "$EXEDIR"/.venv/bin/python src/main.py >> /var/log/logwatch-ai-cron.log 2>&1
+cd "$EXEDIR" && "$EXEDIR"/.venv/bin/python src/main.py > /dev/null 2>&1
